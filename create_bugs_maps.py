@@ -61,12 +61,12 @@ def get_dup_org_maps(bug_repo_path):
     with open(bug_repo_path + '/dup_org_map.json', 'w') as f:
         json.dump(dup_org_merge, f)
 
-    print('Done')
+    # print('Done')
     return dup_org_merge
 
 
-# get_dup_org_maps('bugrepo/Thunderbird')
-# get_dup_org_maps('bugrepo/MozillaCore')
-# get_dup_org_maps('bugrepo/JDT')
-# get_dup_org_maps('bugrepo/Firefox')
-# get_dup_org_maps('bugrepo/EclipsePlatform')
+# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/Thunderbird')
+# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/MozillaCore')
+# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/JDT')
+# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/Firefox')
+# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/EclipsePlatform')
