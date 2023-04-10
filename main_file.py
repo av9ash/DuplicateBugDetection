@@ -3,6 +3,7 @@ import json
 from collections import OrderedDict
 from baseline_ir.nn_model import NNModel
 from tqdm import tqdm
+from print_plots import scatter_plot, histo_sim, top5_dist
 
 
 def load_pr_data(data_path):
@@ -36,23 +37,59 @@ def load_pr_data(data_path):
     return pr_data
 
 
-def test_model(X_test, test_y, n_neighbors, model):
-    print('Testing Model..')
+def get_dup_org_maps(data_dir):
+    with open(data_dir + '/duo_map.json') as f:
+        duo_map = json.load(f)
+
+    return duo_map
+
+
+def get_similar_prs(X_test, n_neighbors, model):
+    print('Generating Recommendations..')
     y_preds = []
-    pbar = tqdm(total=len(test_y))
+    pbar = tqdm(total=X_test.shape[0])
     for i, item in enumerate(X_test):
         similar_prs = model.predict(item, n_neighbors)
         y_preds.append(similar_prs)
         pbar.update(1)
     pbar.close()
     print('Done')
+    return y_preds
+
+
+def evaluate_model(test_prs, y_preds, duo_map):
+    # Check recommendations against original and rest of the marked duplicate prs as a set
+    pos_sim = []
+    print('Evaluating Model..')
+    count = 0
+    for i, dup_pr in enumerate(test_prs):
+        # if duo2_map.get(dup_pr, '') in y_pred[i]:
+        # Following is if recommenation is not original but any other known duplicates,
+        org = duo_map.get(dup_pr, '')
+        # check if the sets have an intersection
+        if org in y_preds[i]:
+            count += 1
+            # print('Potential Dup: {}'.format(dup_pr), 'Similar: {}'.format(y_pred[i]), 'Found: {}'.format(count))
+            pos = list(y_preds[i].keys()).index(org)
+            sim = y_preds[i].get(org)
+            pos_sim.append({'sim': sim, 'pos': pos})
+        else:
+            sim = list(y_preds[i].values())[0]
+            pos_sim.append({'sim': sim, 'pos': -1})
+
+    acc = round(count / len(test_prs), 2)
+    print('Accuracy: {}%'.format(acc))
+    print(pos_sim)
+    return pos_sim
 
 
 def main(train_path, test_path):
     is_test = 'True'
     is_train = 'True'
+    print_plots = 'True'
     n_neighbors = 5
     model = NNModel()
+    data_dir = os.path.dirname(train_path)
 
     if is_train == 'True':
         pr_data = load_pr_data(train_path)
@@ -65,7 +102,19 @@ def main(train_path, test_path):
         test_X, test_y = model.get_X_y(pr_data)
         model.load()
         X_test = model.transform(test_X)
-        test_model(X_test, test_y, n_neighbors, model)
+        y_preds = get_similar_prs(X_test, n_neighbors, model)
+
+        duo_map = get_dup_org_maps(data_dir)
+        pos_sim = evaluate_model(test_y, y_preds, duo_map)
+
+        if print_plots == 'True':
+            plots_path = model.model_dir + '/plots/'
+            if not os.path.exists(plots_path):
+                os.mkdir(plots_path)
+
+            scatter_plot(pos_sim, plots_path)
+            histo_sim(pos_sim, plots_path)
+            top5_dist(pos_sim, plots_path)
 
 
 if __name__ == '__main__':
