@@ -12,6 +12,7 @@ class FTNNModel:
     def __init__(self, model_name='ftnn_model'):
         self.ft_model = fasttext.load_model('fasttext_ir/crawl-300d-2M-subword.bin')
         self.model_name = model_name
+        self.model_dir = os.path.dirname(__file__)
         self.core = NearestNeighbors(n_jobs=-1, p=2, algorithm='auto')
         # Existing PR Numbers.
         self.train_y = []

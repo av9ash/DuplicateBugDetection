@@ -73,6 +73,7 @@ class PRTransformer:
 class NNModel:
     def __init__(self, model_name='nn_model'):
         self.model_name = model_name
+        self.model_dir = os.path.dirname(__file__)
         self.vector = PRTransformer()
         self.core = NearestNeighbors(n_jobs=-1, p=2, algorithm='auto')
         # Existing PR Numbers.
