@@ -1,6 +1,8 @@
 import os
 import json
 from collections import OrderedDict
+from baseline_ir.nn_model import NNModel
+from tqdm import tqdm
 
 
 def load_pr_data(data_path):
@@ -34,17 +36,36 @@ def load_pr_data(data_path):
     return pr_data
 
 
+def test_model(X_test, test_y, n_neighbors, model):
+    print('Testing Model..')
+    y_preds = []
+    pbar = tqdm(total=len(test_y))
+    for i, item in enumerate(X_test):
+        similar_prs = model.predict(item, n_neighbors)
+        y_preds.append(similar_prs)
+        pbar.update(1)
+    pbar.close()
+    print('Done')
+
+
 def main(train_path, test_path):
     is_test = 'True'
     is_train = 'True'
     n_neighbors = 5
-    model_name = 'ir_knn_model'
+    model = NNModel()
 
     if is_train == 'True':
         pr_data = load_pr_data(train_path)
+        train_X, train_y = model.get_X_y(pr_data)
+        model.fit(train_X, train_y)
+        model.save()
 
     if is_test == 'True':
         pr_data = load_pr_data(test_path)
+        test_X, test_y = model.get_X_y(pr_data)
+        model.load()
+        X_test = model.transform(test_X)
+        test_model(X_test, test_y, n_neighbors, model)
 
 
 if __name__ == '__main__':
