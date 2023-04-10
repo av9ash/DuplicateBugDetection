@@ -38,10 +38,22 @@ def load_pr_data(data_path):
 
 
 def get_dup_org_maps(data_dir):
-    with open(data_dir + '/duo_map.json') as f:
+    with open(data_dir + '/dup_org_map.json') as f:
         duo_map = json.load(f)
 
     return duo_map
+
+
+def create_results_dir(data_dir, model_dir, model_name):
+    bugs_repo = data_dir.split('/')[-1]
+    repo_path = os.path.join(model_dir, bugs_repo)
+    if not os.path.exists(repo_path):
+        os.mkdir(repo_path)
+    plots_path = os.path.join(repo_path, model_name)
+    if not os.path.exists(plots_path):
+        os.mkdir(plots_path)
+
+    return plots_path
 
 
 def get_similar_prs(X_test, n_neighbors, model):
@@ -83,21 +95,24 @@ def evaluate_model(test_prs, y_preds, duo_map):
     return pos_sim
 
 
-def main(train_path, test_path):
+def main(train_path, test_path, n_neighbors, model_name):
     is_test = 'True'
     is_train = 'True'
     print_plots = 'True'
-    n_neighbors = 5
+
     model = NNModel()
     data_dir = os.path.dirname(train_path)
+    plots_path = create_results_dir(data_dir, model.model_dir, model_name)
 
     if is_train == 'True':
+        print('Training..')
         pr_data = load_pr_data(train_path)
         train_X, train_y = model.get_X_y(pr_data)
         model.fit(train_X, train_y)
         model.save()
 
     if is_test == 'True':
+        print('Testing..')
         pr_data = load_pr_data(test_path)
         test_X, test_y = model.get_X_y(pr_data)
         model.load()
@@ -106,18 +121,37 @@ def main(train_path, test_path):
 
         duo_map = get_dup_org_maps(data_dir)
         pos_sim = evaluate_model(test_y, y_preds, duo_map)
+        with open(plots_path + '/pos_sim.json', 'w') as f:
+            json.dump(pos_sim, f)
 
-        if print_plots == 'True':
-            plots_path = model.model_dir + '/plots/'
-            if not os.path.exists(plots_path):
-                os.mkdir(plots_path)
+    if print_plots == 'True':
+        with open(plots_path + '/pos_sim.json') as f:
+            pos_sim = json.load(f)
 
-            scatter_plot(pos_sim, plots_path)
-            histo_sim(pos_sim, plots_path)
-            top5_dist(pos_sim, plots_path)
+        scatter_plot(pos_sim, plots_path)
+        histo_sim(pos_sim, plots_path)
+        top5_dist(pos_sim, plots_path)
 
 
 if __name__ == '__main__':
-    train_path = '/Users/patila/Desktop/gnats_data/21fq_quick/training'
-    test_path = '/Users/patila/Desktop/gnats_data/21fq_quick/testing'
-    main(train_path, test_path)
+    # train_path = '/Users/patila/Desktop/gnats_data/21fq_quick/training'
+    # test_path = '/Users/patila/Desktop/gnats_data/21fq_quick/testing'
+
+    # repo = 'Thunderbird'
+    # train_path = '/Users/patila/Desktop/open_data/bugrepo/{}/training'.format(repo)
+    # test_path = '/Users/patila/Desktop/open_data/bugrepo/{}/testing'.format(repo)
+    #
+    # model_name = 'all_data'
+    # n_neighbors = 5
+    # main(train_path, test_path, n_neighbors, model_name)
+
+    repos = ['Thunderbird', 'JDT', 'EclipsePlatform', 'Firefox', 'MozillaCore']
+    open_data_path = '/Users/patila/Desktop/open_data/bugrepo'
+    for repo in repos:
+        print('Bugs Repo: ', repo)
+        train_path = '{}/{}/training'.format(open_data_path, repo)
+        test_path = '{}/{}/testing'.format(open_data_path, repo)
+        model_name = 'all_data'
+
+        n_neighbors = 5
+        main(train_path, test_path, n_neighbors, model_name)
