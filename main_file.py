@@ -2,6 +2,8 @@ import os
 import json
 from collections import OrderedDict
 from baseline_ir.nn_model import NNModel
+# from fasttext_ir.nn_ft_model import FTNNModel
+from gensim_ir.d2v_model import GenModel
 from tqdm import tqdm
 from print_plots import scatter_plot, histo_sim, top5_dist
 
@@ -59,7 +61,12 @@ def create_results_dir(data_dir, model_dir, model_name):
 def get_similar_prs(X_test, n_neighbors, model):
     print('Generating Recommendations..')
     y_preds = []
-    pbar = tqdm(total=X_test.shape[0])
+    if type(X_test) is list:
+        pbar_tot = len(X_test)
+    else:
+        pbar_tot = X_test.shape[0]
+
+    pbar = tqdm(total=pbar_tot)
     for i, item in enumerate(X_test):
         similar_prs = model.predict(item, n_neighbors)
         y_preds.append(similar_prs)
@@ -91,16 +98,15 @@ def evaluate_model(test_prs, y_preds, duo_map):
 
     acc = round(count / len(test_prs), 2)
     print('Accuracy: {}%'.format(acc))
-    print(pos_sim)
+    # print(pos_sim)
     return pos_sim
 
 
-def main(train_path, test_path, n_neighbors, model_name):
+def main(train_path, test_path, n_neighbors, model, model_name):
     is_test = 'True'
     is_train = 'True'
     print_plots = 'True'
 
-    model = NNModel()
     data_dir = os.path.dirname(train_path)
     plots_path = create_results_dir(data_dir, model.model_dir, model_name)
 
@@ -134,24 +140,31 @@ def main(train_path, test_path, n_neighbors, model_name):
 
 
 if __name__ == '__main__':
+    model1 = NNModel()
+    model2 = GenModel()
+    # model3 = FTNNModel()
+
     # train_path = '/Users/patila/Desktop/gnats_data/21fq_quick/training'
     # test_path = '/Users/patila/Desktop/gnats_data/21fq_quick/testing'
 
     # repo = 'Thunderbird'
     # train_path = '/Users/patila/Desktop/open_data/bugrepo/{}/training'.format(repo)
     # test_path = '/Users/patila/Desktop/open_data/bugrepo/{}/testing'.format(repo)
-    #
+
     # model_name = 'all_data'
     # n_neighbors = 5
-    # main(train_path, test_path, n_neighbors, model_name)
+    # main(train_path, test_path, n_neighbors, model1, model_name)
 
+    models = [model1, model2]
     repos = ['Thunderbird', 'JDT', 'EclipsePlatform', 'Firefox', 'MozillaCore']
     open_data_path = '/Users/patila/Desktop/open_data/bugrepo'
     for repo in repos:
-        print('Bugs Repo: ', repo)
-        train_path = '{}/{}/training'.format(open_data_path, repo)
-        test_path = '{}/{}/testing'.format(open_data_path, repo)
-        model_name = 'all_data'
+        for model in models:
+            print('Bugs Repo: ', repo)
+            print('Model: ', type(model))
+            train_path = '{}/{}/training'.format(open_data_path, repo)
+            test_path = '{}/{}/testing'.format(open_data_path, repo)
+            model_name = 'all_data'
 
-        n_neighbors = 5
-        main(train_path, test_path, n_neighbors, model_name)
+            n_neighbors = 5
+            main(train_path, test_path, n_neighbors, model, model_name)
