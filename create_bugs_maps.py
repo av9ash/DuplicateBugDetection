@@ -56,7 +56,9 @@ def get_dup_org_maps(bug_repo_path):
         else:
             dup_org_merge[ts_dup] = ts_org
             tr_org = test_dup_org[ts_dup]
-            dup_org_merge[tr_org] = ts_org
+            # condition keeps from org being marked as its own dup.
+            if tr_org != ts_org:
+                dup_org_merge[tr_org] = ts_org
 
     with open(bug_repo_path + '/dup_org_map.json', 'w') as f:
         json.dump(dup_org_merge, f)
