@@ -69,14 +69,19 @@ def get_train_test(path):
 
 def get_unique_prs(path):
     data_dir = os.path.dirname(path)
+    dup_org_map = get_dup_org_maps(data_dir)
+    dup = dup_org_map.keys()
+    org = dup_org_map.values()
+
     train_path = os.path.join(data_dir, 'training')
     data = read_csv(path)
     count = []
     pbar = tqdm(total=len(data))
-    for details in data.values():
+    for pr_num, details in data.items():
         if not os.path.exists(train_path):
             os.mkdir(train_path)
-        count.append(dump_pr(details, train_path))
+        if pr_num not in dup and pr_num not in org:
+            count.append(dump_pr(details, train_path))
         pbar.update(1)
 
     # print('Saved:{} Unique Bugs.', len(os.listdir(train_path)))
