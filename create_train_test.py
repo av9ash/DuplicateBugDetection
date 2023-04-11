@@ -63,8 +63,9 @@ def get_train_test(path):
         dump_pr(data[org], train_path)
         pbar.update(1)
 
-    print('Saved:{} Child Bugs.', len(os.listdir(test_path)))
-    print('Saved:{} Parent Bugs.', len(os.listdir(train_path)))
+    pbar.close()
+    print('Saved:{} Child Bugs.'.format(len(os.listdir(test_path))))
+    print('Saved:{} Parent Bugs.'.format(len(os.listdir(train_path))))
 
 
 def get_unique_prs(path):
@@ -83,13 +84,19 @@ def get_unique_prs(path):
         if pr_num not in dup and pr_num not in org:
             count.append(dump_pr(details, train_path))
         pbar.update(1)
-
+    pbar.close()
     # print('Saved:{} Unique Bugs.', len(os.listdir(train_path)))
     print('Saved:{} Unique Bugs.', len(count))
 
 
 if __name__ == '__main__':
-    # csv_path = 'bugrepo/Thunderbird/mozilla_thunderbird.csv'
-    csv_path = sys.argv[1]
-    get_train_test(csv_path)
-    get_unique_prs(csv_path)
+    main_path = '/Users/patila/Desktop/open_data/bugrepo/'
+    # main_path = sys.argv[1]
+    repos = ['Thunderbird/mozilla_thunderbird.csv', 'JDT/eclipse_jdt.csv', 'EclipsePlatform/eclipse_platform.csv',
+             'Firefox/mozilla_firefox.csv', 'MozillaCore/mozilla_core.csv']
+
+    for repo in repos:
+        print(repo)
+        csv_path = os.path.join(main_path, repo)
+        get_train_test(csv_path)
+        get_unique_prs(csv_path)
