@@ -58,8 +58,9 @@ def create_results_dir(data_dir, model_dir, model_name):
     return plots_path
 
 
-def get_similar_prs(X_test, n_neighbors, model):
+def get_similar_prs(X_test, test_y, n_neighbors, model):
     print('Generating Recommendations..')
+    recommendations = {}
     y_preds = []
     if type(X_test) is list:
         pbar_tot = len(X_test)
@@ -68,12 +69,14 @@ def get_similar_prs(X_test, n_neighbors, model):
 
     pbar = tqdm(total=pbar_tot)
     for i, item in enumerate(X_test):
+        query_pr = test_y[i]
         similar_prs = model.predict(item, n_neighbors)
         y_preds.append(similar_prs)
+        recommendations[query_pr] = similar_prs
         pbar.update(1)
     pbar.close()
     print('Done')
-    return y_preds
+    return y_preds, recommendations
 
 
 def evaluate_model(test_prs, y_preds, duo_map):
@@ -123,12 +126,15 @@ def main(train_path, test_path, n_neighbors, model, model_name):
         test_X, test_y = model.get_X_y(pr_data)
         model.load()
         X_test = model.transform(test_X)
-        y_preds = get_similar_prs(X_test, n_neighbors, model)
+        y_preds, recs = get_similar_prs(X_test, test_y, n_neighbors, model)
 
         duo_map = get_dup_org_maps(data_dir)
         pos_sim = evaluate_model(test_y, y_preds, duo_map)
         with open(plots_path + '/pos_sim.json', 'w') as f:
             json.dump(pos_sim, f)
+
+        with open(plots_path + '/recs.json', 'w') as f:
+            json.dump(recs, f)
 
     if print_plots == 'True':
         with open(plots_path + '/pos_sim.json') as f:
