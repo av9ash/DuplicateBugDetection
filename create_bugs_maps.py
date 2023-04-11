@@ -1,7 +1,7 @@
 import csv
 import json
 import os
-
+import sys
 
 def read_csv(target_file):
     """
@@ -67,8 +67,8 @@ def get_dup_org_maps(bug_repo_path):
     return dup_org_merge
 
 
-# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/Thunderbird')
-# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/MozillaCore')
-# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/JDT')
-# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/Firefox')
-# get_dup_org_maps('/Users/patila/Desktop/open_data/bugrepo/EclipsePlatform')
+if __name__ == '__main__':
+    main_path = sys.argv[1]
+    repos = ['Thunderbird', 'MozillaCore', 'JDT', 'Firefox', 'EclipsePlatform']
+    for repo in repos:
+        get_dup_org_maps(os.path.join(main_path, repo))
