@@ -3,6 +3,7 @@ import json
 import os
 import sys
 
+
 def read_csv(target_file):
     """
     Read rows from csv file.
@@ -38,6 +39,18 @@ def make_dup_org_mapppings(target_file):
     return dup_org
 
 
+def clean_self_maps(dup_org_merge):
+    remove_keys = []
+    for dup, org in dup_org_merge.items():
+        if dup == org:
+            remove_keys.append(dup_org_merge[dup])
+
+    for key in remove_keys:
+        del (dup_org_merge[key])
+
+    return dup_org_merge
+
+
 def get_dup_org_maps(bug_repo_path):
     train_dup_org = make_dup_org_mapppings(bug_repo_path + '/train.csv')
     test_dup_org = make_dup_org_mapppings(bug_repo_path + '/test.csv')
@@ -56,13 +69,11 @@ def get_dup_org_maps(bug_repo_path):
         else:
             dup_org_merge[ts_dup] = ts_org
             tr_org = test_dup_org[ts_dup]
-            # condition keeps from org being marked as its own dup.
-            if tr_org != ts_org:
-                dup_org_merge[tr_org] = ts_org
+            dup_org_merge[tr_org] = ts_org
 
+    dup_org_merge = clean_self_maps(dup_org_merge)
     with open(bug_repo_path + '/dup_org_map.json', 'w') as f:
         json.dump(dup_org_merge, f)
-
     # print('Done')
     return dup_org_merge
 
