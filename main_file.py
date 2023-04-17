@@ -9,11 +9,11 @@ from print_plots import scatter_plot, histo_sim, top5_dist
 
 
 def load_pr_data(data_path):
-    '''
+    """
     Creates json object from description and parameters files.
     :param data_path
     :return: dictionary
-    '''
+    """
     pr_data = OrderedDict()
     files_to_load = os.listdir(data_path)
 
@@ -40,25 +40,40 @@ def load_pr_data(data_path):
 
 
 def get_dup_org_maps(data_dir):
+    """
+    Creates dict object of duplicate to original PR mapping.
+    :param data_dir
+    :return: dictionary
+    """
     with open(data_dir + '/dup_org_map.json') as f:
         duo_map = json.load(f)
 
     return duo_map
 
 
-def create_results_dir(data_dir, model_dir, model_name):
+def create_results_dir(model_dir, data_dir, model_name):
+    """
+    Creates dir where results should be saved
+    :param model_dir, data_dir, model_name
+    :return: string
+    """
+
+    model_dir = model_dir + '/results'
     bugs_repo = data_dir.split('/')[-1]
     repo_path = os.path.join(model_dir, bugs_repo)
-    if not os.path.exists(repo_path):
-        os.mkdir(repo_path)
     plots_path = os.path.join(repo_path, model_name)
     if not os.path.exists(plots_path):
-        os.mkdir(plots_path)
+        os.makedirs(plots_path)
 
     return plots_path
 
 
 def get_similar_prs(X_test, test_y, n_neighbors, model):
+    """
+    Matches each sample in X Test with n existing PRs that are most similar to it.
+    :param X_test, test_y, n_neighbors, model
+    :return: list, list
+    """
     print('Generating Recommendations..')
     recommendations = {}
     y_preds = []
@@ -99,19 +114,17 @@ def evaluate_model(test_prs, y_preds, duo_map):
             sim = list(y_preds[i].values())[0]
             pos_sim.append({'sim': sim, 'pos': -1})
 
-    acc = round(count / len(test_prs), 2)
+    acc = round(count / len(test_prs), 2) * 100
     print('Accuracy: {}%'.format(acc))
     # print(pos_sim)
-    return pos_sim
+    return pos_sim, acc
 
 
-def main(train_path, test_path, n_neighbors, model, model_name):
-    is_test = 'True'
-    is_train = 'True'
-    print_plots = 'True'
+def main(train_path, test_path, n_neighbors, model, model_name, is_train='True', is_test='True', print_plots='False'):
+    accuracy = None
 
     data_dir = os.path.dirname(train_path)
-    plots_path = create_results_dir(data_dir, model.model_dir, model_name)
+    plots_path = create_results_dir(model.model_dir, data_dir, model_name)
 
     if is_train == 'True':
         print('Training..')
@@ -124,12 +137,14 @@ def main(train_path, test_path, n_neighbors, model, model_name):
         print('Testing..')
         pr_data = load_pr_data(test_path)
         test_X, test_y = model.get_X_y(pr_data)
+        # test_X = test_X[:1200]
+        # test_y = test_y[:1200]
         model.load()
         X_test = model.transform(test_X)
         y_preds, recs = get_similar_prs(X_test, test_y, n_neighbors, model)
 
         duo_map = get_dup_org_maps(data_dir)
-        pos_sim = evaluate_model(test_y, y_preds, duo_map)
+        pos_sim, accuracy = evaluate_model(test_y, y_preds, duo_map)
         with open(plots_path + '/pos_sim.json', 'w') as f:
             json.dump(pos_sim, f)
 
@@ -144,25 +159,29 @@ def main(train_path, test_path, n_neighbors, model, model_name):
         histo_sim(pos_sim, plots_path)
         top5_dist(pos_sim, plots_path)
 
+    return accuracy
+
 
 if __name__ == '__main__':
     model1 = NNModel()
     model2 = GenModel()
     # model3 = FTNNModel()
 
-    # train_path = '/Users/patila/Desktop/gnats_data/21fq_quick/training'
-    # test_path = '/Users/patila/Desktop/gnats_data/21fq_quick/testing'
+    # repo = 'gnats'
+    # train_path = '/Users/patila/Desktop/gnats_data/21_Q1/training'
+    # test_path = '/Users/patila/Desktop/gnats_data/21_Q1/testing'
 
-    # repo = 'Thunderbird'
+    # repo = 'JDT'
     # train_path = '/Users/patila/Desktop/open_data/bugrepo/{}/training'.format(repo)
     # test_path = '/Users/patila/Desktop/open_data/bugrepo/{}/testing'.format(repo)
-
+    #
     # model_name = 'all_data'
     # n_neighbors = 5
     # main(train_path, test_path, n_neighbors, model1, model_name)
 
     models = [model1, model2]
-    repos = ['Thunderbird', 'JDT', 'EclipsePlatform', 'Firefox', 'MozillaCore']
+    # repos = ['Thunderbird', 'JDT', 'EclipsePlatform', 'Firefox', 'MozillaCore']
+    repos = ['Thunderbird', 'JDT', 'EclipsePlatform']
     open_data_path = '/Users/patila/Desktop/open_data/bugrepo'
     for repo in repos:
         for model in models:
