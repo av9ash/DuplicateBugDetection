@@ -1,0 +1,5 @@
+scikit-learn
+sentence-transformers
+fasttext
+gensim
+matplotlib
