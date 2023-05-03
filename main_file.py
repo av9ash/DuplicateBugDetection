@@ -2,10 +2,12 @@ import os
 import json
 from collections import OrderedDict
 from baseline_ir.nn_model import NNModel
-# from fasttext_ir.nn_ft_model import FTNNModel
+from fasttext_ir.nn_ft_model import FTNNModel
 from gensim_ir.d2v_model import GenModel
 from tqdm import tqdm
 from print_plots import scatter_plot, histo_sim, top5_dist
+from bert_tsdae_ir.bert_unsup_model import TSDBModel
+from bert_tsdae_ir.bert_base import BERT_NNModel
 
 
 def load_pr_data(data_path):
@@ -74,7 +76,7 @@ def get_similar_prs(X_test, test_y, n_neighbors, model):
     :param X_test, test_y, n_neighbors, model
     :return: list, list
     """
-    print('Generating Recommendations..')
+    print('\nGenerating Recommendations..')
     recommendations = {}
     y_preds = []
     if type(X_test) is list:
@@ -85,7 +87,7 @@ def get_similar_prs(X_test, test_y, n_neighbors, model):
     pbar = tqdm(total=pbar_tot)
     for i, item in enumerate(X_test):
         query_pr = test_y[i]
-        similar_prs = model.predict(item, n_neighbors)
+        similar_prs = model.predict([item], n_neighbors)
         y_preds.append(similar_prs)
         recommendations[query_pr] = similar_prs
         pbar.update(1)
@@ -97,7 +99,7 @@ def get_similar_prs(X_test, test_y, n_neighbors, model):
 def evaluate_model(test_prs, y_preds, duo_map):
     # Check recommendations against original and rest of the marked duplicate prs as a set
     pos_sim = []
-    print('Evaluating Model..')
+    # print('Evaluating Model..')
     count = 0
     for i, dup_pr in enumerate(test_prs):
         # if duo2_map.get(dup_pr, '') in y_pred[i]:
@@ -115,7 +117,7 @@ def evaluate_model(test_prs, y_preds, duo_map):
             pos_sim.append({'sim': sim, 'pos': -1})
 
     acc = round(count / len(test_prs), 2) * 100
-    print('Accuracy: {}%'.format(acc))
+    # print('Accuracy: {}%'.format(acc))
     # print(pos_sim)
     return pos_sim, acc
 
@@ -163,33 +165,35 @@ def main(train_path, test_path, n_neighbors, model, model_name, is_train='True',
 
 
 if __name__ == '__main__':
-    model1 = NNModel()
-    model2 = GenModel()
+    # model1 = NNModel()
+    # model2 = GenModel()
     # model3 = FTNNModel()
+    # model4 = TSDBModel()
+    model5 = BERT_NNModel()
 
-    # repo = 'gnats'
-    # train_path = '/Users/patila/Desktop/gnats_data/21_Q1/training'
-    # test_path = '/Users/patila/Desktop/gnats_data/21_Q1/testing'
+    repo = 'gnats'
+    train_path = '/Users/patila/Desktop/gnats_data/21fq_quick/training'
+    test_path = '/Users/patila/Desktop/gnats_data/21fq_quick/testing'
 
     # repo = 'JDT'
     # train_path = '/Users/patila/Desktop/open_data/bugrepo/{}/training'.format(repo)
     # test_path = '/Users/patila/Desktop/open_data/bugrepo/{}/testing'.format(repo)
+
+    model_name = 'all_data'
+    n_neighbors = 5
+    print(main(train_path, test_path, n_neighbors, model5, model_name))
+
+    # models = [model1, model2]
+    # # repos = ['Thunderbird', 'JDT', 'EclipsePlatform', 'Firefox', 'MozillaCore']
+    # repos = ['Thunderbird', 'JDT', 'EclipsePlatform']
+    # open_data_path = '/Users/patila/Desktop/open_data/bugrepo'
+    # for repo in repos:
+    #     for model in models:
+    #         print('Bugs Repo: ', repo)
+    #         print('Model: ', type(model))
+    #         train_path = '{}/{}/training'.format(open_data_path, repo)
+    #         test_path = '{}/{}/testing'.format(open_data_path, repo)
+    #         model_name = 'all_data'
     #
-    # model_name = 'all_data'
-    # n_neighbors = 5
-    # main(train_path, test_path, n_neighbors, model1, model_name)
-
-    models = [model1, model2]
-    # repos = ['Thunderbird', 'JDT', 'EclipsePlatform', 'Firefox', 'MozillaCore']
-    repos = ['Thunderbird', 'JDT', 'EclipsePlatform']
-    open_data_path = '/Users/patila/Desktop/open_data/bugrepo'
-    for repo in repos:
-        for model in models:
-            print('Bugs Repo: ', repo)
-            print('Model: ', type(model))
-            train_path = '{}/{}/training'.format(open_data_path, repo)
-            test_path = '{}/{}/testing'.format(open_data_path, repo)
-            model_name = 'all_data'
-
-            n_neighbors = 5
-            main(train_path, test_path, n_neighbors, model, model_name)
+    #         n_neighbors = 5
+    #         main(train_path, test_path, n_neighbors, model, model_name)
