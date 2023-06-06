@@ -78,11 +78,15 @@ class NNModel:
         self.core = NearestNeighbors(n_jobs=-1, p=2, algorithm='auto')
         # Existing PR Numbers.
         self.train_y = []
+        self.embeddings = {}
 
     def fit(self, train_X, train_y):
         print('Transforming Text..')
         self.train_y = train_y
         X_train = self.vector.fit_transform(train_X)
+
+        self.embeddings = dict(zip(train_y, X_train))
+
         print('Fitting Model..')
         self.core.fit(X_train)
         return self
@@ -109,6 +113,9 @@ class NNModel:
             path = os.path.join(os.path.dirname(__file__), 'trained_models')
         if not os.path.exists(path):
             os.makedirs(path)
+
+        # Avoid saving embeddings
+        self.embeddings = []
         joblib.dump(self, path + '/' + self.model_name + '.joblib')
         print('Model saved at: ', path + '/' + self.model_name + '.joblib')
 
