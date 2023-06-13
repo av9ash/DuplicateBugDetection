@@ -14,6 +14,7 @@ class GenModel:
         self.model_dir = os.path.dirname(__file__)
         # Existing PR Numbers.
         self.train_y = []
+        self.embeddings = {}
 
     def fit(self, train_X, train_y):
         print('Transforming Text..')
@@ -33,6 +34,7 @@ class GenModel:
                                                binary=True)
         print('Training..')
         self.model_gj.train(documents, total_examples=self.model_gj.corpus_count, epochs=100)
+        self.embeddings = dict(zip(self.model_gj.dv.index_to_key, self.model_gj.dv.vectors))
 
         return self
 
