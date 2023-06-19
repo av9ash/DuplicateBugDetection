@@ -1,12 +1,16 @@
 import json
 from datetime import datetime, timedelta
 import joblib
+import numpy
 from sklearn.neighbors import NearestNeighbors
 import time
 from scipy.spatial import distance
 import numpy as np
 from main_file import load_pr_data
 from baseline_ir.nn_model import NNModel
+# from bert_ir.bert_base import BERT_NNModel
+# from fasttext_ir.nn_ft_model import FTNNModel
+# from gensim_ir.d2v_model import GenModel
 from main_file import *
 from scipy.sparse import vstack
 from tqdm import tqdm
@@ -91,7 +95,12 @@ def get_prs_to_search(start_date, end_date, ct_prs_map):
 def get_pr_and_embedding(search_prs, pr_emb_map):
     res = {}
     for pr in search_prs:
-        res[pr] = pr_emb_map[pr].toarray().ravel()
+        if type(pr_emb_map[pr]) is numpy.ndarray:
+            res[pr] = pr_emb_map[pr]
+        else:
+            res[pr] = pr_emb_map[pr].toarray().ravel()
+            # Test for NN Model without ravel
+            # res[pr] = pr_emb_map[pr]
     return res
 
 
@@ -178,6 +187,7 @@ def exp_three(train_path, test_path, n_neighbors, model, model_name, search_days
         # test_X = test_X[:1200]
         # test_y = test_y[:1200]
         X_test = model.transform(test_X)
+        joblib.dump(X_test, 'embeddings/{}_{}_test.joblib'.format(model.__class__.__name__, model_name))
 
         pr_test_embs = dict(zip(test_y, X_test))
         y_preds = []
@@ -197,14 +207,24 @@ def exp_three(train_path, test_path, n_neighbors, model, model_name, search_days
             pr_embeddings_map = get_pr_and_embedding(search_prs, model.embeddings)
             X_train = list(pr_embeddings_map.values())
             train_y = list(pr_embeddings_map.keys())
-            similar_prs = get_duplicates(X_train, train_y, [pr_test_embs[pr].toarray().ravel()])
+            x_test = [pr_test_embs[pr].toarray().ravel()]
+
+            # # Changes for NN model:
+            # if type(pr_test_embs[pr]) is numpy.ndarray:
+            #     x_test = pr_test_embs[pr]
+            # else:
+            #     x_test = pr_test_embs[pr].toarray().ravel()
+            # search_model = get_model(X_train)
+
+            similar_prs = get_duplicates(X_train, train_y, [x_test])
             y_preds.append(similar_prs)
             recommendations[pr] = similar_prs
-            with open(plots_path + '/recs.json', 'w') as f:
-                json.dump(recommendations, f)
             pbar.update()
 
         pbar.close()
+
+        with open(plots_path + '/recs.json', 'w') as f:
+            json.dump(recommendations, f)
 
         duo_map = get_dup_org_maps(data_dir)
         pos_sim, acc = evaluate_model(test_y, y_preds, duo_map)
@@ -213,7 +233,6 @@ def exp_three(train_path, test_path, n_neighbors, model, model_name, search_days
 
         with open(plots_path + '/pr_searched.json', 'w') as f:
             json.dump(cluster_sizes, f)
-
 
     # if print_plots == 'True':
     #     with open(plots_path + '/pos_sim.json') as f:
@@ -241,9 +260,7 @@ def run_full_exp():
             test_path = '{}/{}/testing'.format(open_data_path, repo)
             n_neighbors = 5
             model_name = '{}_chunks'.format(repo)
-            exp_three(train_path, test_path, n_neighbors, model, model_name, search_days[repo], is_train='False')
+            exp_three(train_path, test_path, n_neighbors, model, model_name, search_days[repo], is_train='True')
 
 
 run_full_exp()
-
-
