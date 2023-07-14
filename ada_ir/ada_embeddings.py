@@ -6,13 +6,14 @@ from tqdm import tqdm
 from preprocessor import bugs_preprocessor
 import os
 from collections import OrderedDict
+from api_key import key as your_key_here
 
 
 class ADAEncoder(TransformerMixin, BaseEstimator):
 
     def __init__(self, target_path):
         self.engine = "text-embedding-ada-002"
-        openai.api_key = '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'
+        openai.api_key = your_key_here
         self.target_path = target_path
 
     def transform(self, X, y):
