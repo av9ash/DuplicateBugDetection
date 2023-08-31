@@ -12,15 +12,14 @@ network for retrieval.
 
 ### Cite Our Paper
 ```
-@INPROCEEDINGS{10126470,
-  author={Patil, Avinash and Jadon, Aryan},
-  booktitle={2023 IEEE 8th International Conference for Convergence in Technology (I2CT)}, 
-  title={Auto-labelling of Bug Report using Natural Language Processing}, 
-  year={2023},
-  volume={},
-  number={},
-  pages={1-7},
-  doi={10.1109/I2CT57861.2023.10126470}}
+@misc{patil2023comparative,
+      title={A Comparative Study of Text Embedding Models for Semantic Text Similarity in Bug Reports}, 
+      author={Avinash Patil and Kihwan Han and Sabyasachi Mukhopadhyay},
+      year={2023},
+      eprint={2308.09193},
+      archivePrefix={arXiv},
+      primaryClass={cs.SE}
+}
 ```
 
 ## Installation Instructions
