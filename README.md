@@ -31,7 +31,7 @@ Steps:
 
 1. **Clone the repository (if you haven't already)**:
    ```bash
-   git clone https://github.com/aryan-jadon/DuplicateBugDetection.git
+   git clone https://github.com/av9ash/DuplicateBugDetection.git
    cd DuplicateBugDetection
    ```
 
