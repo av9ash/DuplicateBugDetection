@@ -4,7 +4,7 @@
 
 ## About Project
 ```
-This repository contains the implementation of our paper "Auto-labelling of Bug Report using Natural Language Processing".
+This repository contains the implementation of our paper "A Comparative Study of Text Embedding Models for Semantic Text Similarity in Bug Reports".
 Duplicate bug report detection in tracking systems saves debugging efforts. Traditional solutions lack clear ranking, 
 deterring their use. Our paper introduces an NLP-based method using bug report attributes, leveraging a neural 
 network for retrieval.
