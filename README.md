@@ -10,16 +10,18 @@ deterring their use. Our paper introduces an NLP-based method using bug report a
 network for retrieval.
 ```
 
-### Cite Our Paper
+### If you use any of this code please Cite Our Paper
 ```
-@misc{patil2023comparative,
-      title={A Comparative Study of Text Embedding Models for Semantic Text Similarity in Bug Reports}, 
-      author={Avinash Patil and Kihwan Han and Sabyasachi Mukhopadhyay},
-      year={2023},
-      eprint={2308.09193},
-      archivePrefix={arXiv},
-      primaryClass={cs.SE}
-}
+@INPROCEEDINGS{10512000,
+  author={Patil, Avinash and Han, Kihwan and Jadon, Aryan},
+  booktitle={2024 11th International Conference on Signal Processing and Integrated Networks (SPIN)}, 
+  title={A Comparative Analysis of Text Embedding Models for Bug Report Semantic Similarity}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={262-267},
+  keywords={Training;Analytical models;Limiting;Databases;Computer bugs;Semantics;Software systems;ADA;BERT;Bug Reports;Defect Reports;Duplicate Detection;Embeddings;FastText;Gensim;GPT3;GPT3.5;Information Retrieval;Large Language Models;LLM;Natural Language Processing;Sentence Textual Similarity;Similarity Search},
+  doi={10.1109/SPIN60856.2024.10512000}}
 ```
 
 ## Installation Instructions
